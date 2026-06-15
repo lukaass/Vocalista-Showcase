@@ -5,7 +5,7 @@ import {
   ExternalLink, Copy, Check, Sparkles, Sliders, ShieldCheck, Mail, Lock, Phone, Palette, HelpCircle 
 } from 'lucide-react';
 import { SingerProfile } from '../types';
-import { getDatabase, addSinger, deleteSinger } from '../services/db';
+import { getDatabase, addSinger, deleteSinger, getAdminCredentials, updateAdminCredentials } from '../services/db';
 import { getShareUrl } from '../utils/mediaParser';
 
 interface PlatformOwnerDashboardProps {
@@ -29,6 +29,57 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
+
+  // Admin Credentials Management States
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminSuccess, setAdminSuccess] = useState<string | null>(null);
+  const [adminError, setAdminError] = useState<string | null>(null);
+
+  // Sync / populate administrator values
+  React.useEffect(() => {
+    const creds = getAdminCredentials();
+    setAdminUsername(creds.username);
+    setAdminEmail(creds.email);
+    setAdminPassword(creds.password);
+  }, []);
+
+  const handleUpdateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    setAdminSuccess(null);
+
+    const cleanUser = adminUsername.trim().toLowerCase();
+    const cleanMail = adminEmail.trim().toLowerCase();
+    const cleanPass = adminPassword;
+
+    if (cleanUser.length < 3) {
+      setAdminError('O usuário do administrador deve ter pelo menos 3 caracteres.');
+      return;
+    }
+    if (cleanMail.length < 5 || !cleanMail.includes('@')) {
+      setAdminError('Por favor, insira um e-mail válido para o administrador.');
+      return;
+    }
+    if (cleanPass.length < 3) {
+      setAdminError('A senha do administrador deve ter pelo menos 3 caracteres.');
+      return;
+    }
+
+    const updated = await updateAdminCredentials({
+      username: cleanUser,
+      email: cleanMail,
+      password: cleanPass
+    });
+
+    if (updated) {
+      setAdminSuccess('Credenciais administrativas salvas e atualizadas com sucesso no Firestore!');
+      setTimeout(() => setAdminSuccess(null), 4000);
+    } else {
+      setAdminError('Ocorreu um erro ao atualizar as credenciais no Firestore.');
+    }
+  };
 
   // Stats calculation
   const totalSingers = singers.length;
@@ -224,152 +275,223 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
         {/* Content body split: Add singer (left) y Catalog table (right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Create new Artist form pillar */}
-          <div className="lg:col-span-4 bg-slate-950 border border-white/5 rounded-3xl p-6 shadow-xl">
-            <h3 className="text-lg font-bold flex items-center gap-2 mb-4 font-sans text-white border-b border-white/5 pb-2">
-              <Plus size={18} className="text-indigo-400" />
-              Cadastrar Novo Cantor
-            </h3>
+          {/* Left Column Stack with Singer Creation & Admin Credentials */}
+          <div className="lg:col-span-4 space-y-6 flex flex-col">
+            
+            {/* Create new Artist form pillar */}
+            <div className="bg-slate-950 border border-white/5 rounded-3xl p-6 shadow-xl">
+              <h3 className="text-lg font-bold flex items-center gap-2 mb-4 font-sans text-white border-b border-white/5 pb-2">
+                <Plus size={18} className="text-indigo-400" />
+                Cadastrar Novo Cantor
+              </h3>
 
-            {errorMessage && (
-              <div className="p-3.5 mb-4 rounded-xl bg-red-950/40 border border-red-800 text-red-200 text-xs leading-relaxed">
-                {errorMessage}
-              </div>
-            )}
+              {errorMessage && (
+                <div className="p-3.5 mb-4 rounded-xl bg-red-950/40 border border-red-800 text-red-200 text-xs leading-relaxed">
+                  {errorMessage}
+                </div>
+              )}
 
-            {successMessage && (
-              <div className="p-3.5 mb-4 rounded-xl bg-emerald-950/40 border border-emerald-800 text-emerald-200 text-xs leading-relaxed">
-                {successMessage}
-              </div>
-            )}
+              {successMessage && (
+                <div className="p-3.5 mb-4 rounded-xl bg-emerald-950/40 border border-emerald-800 text-emerald-200 text-xs leading-relaxed">
+                  {successMessage}
+                </div>
+              )}
 
-            <form onSubmit={handleAddSinger} className="space-y-4 text-xs font-medium">
-              
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Nome Oficial do Cantor *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Marcus Vinícius"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (!username) {
-                      setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
-                    }
-                  }}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-500"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1">
-                  Username Slug (Link Único) *
-                  <HelpCircle size={11} className="text-slate-500 cursor-help" title="Ex: ?singer=NOME_AQUI" />
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-500 font-mono font-medium">?singer=</span>
+              <form onSubmit={handleAddSinger} className="space-y-4 text-xs font-medium">
+                
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Nome Oficial do Cantor *</label>
                   <input
                     type="text"
                     required
-                    placeholder="marcusv"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                    className="w-full pl-[68px] pr-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-500 font-mono"
+                    placeholder="Ex: Marcus Vinícius"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (!username) {
+                        setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+                      }
+                    }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Email Login *</label>
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1">
+                    Username Slug (Link Único) *
+                    <HelpCircle size={11} className="text-slate-500 cursor-help" title="Ex: ?singer=NOME_AQUI" />
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-slate-500 font-mono font-medium">?singer=</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="marcusv"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                      className="w-full pl-[68px] pr-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-500 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Email Login *</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="marcus@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Senha Login *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="123"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505 font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Telefone Whatsapp *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="5511999998888"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505 font-mono"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Gênero Musical *</label>
+                    <input
+                      type="text"
+                      required
+                      value={genre}
+                      onChange={(e) => setGenre(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Cor Temática de Destaque</label>
+                  <div className="grid grid-cols-4 gap-2 pt-1 font-mono text-[9px]">
+                    {(['amber', 'emerald', 'blue', 'rose', 'crimson', 'violet', 'sky', 'indigo'] as SingerProfile['themeColor'][]).map(col => (
+                      <button
+                        type="button"
+                        key={col}
+                        onClick={() => setThemeColor(col)}
+                        className={`py-1.5 rounded-lg border text-center transition flex flex-col items-center gap-1 capitalize ${
+                          themeColor === col 
+                            ? 'border-indigo-550 text-white bg-white/10 font-bold' 
+                            : 'border-white/5 text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        <span className={`w-3.5 h-3.5 rounded-full ${getThemeColorClass(col).split(' ')[0]}`} />
+                        {col}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 pt-2">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Slogan Comercial Resumido</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: O show sertanejo perfeito para noites elegantes"
+                    value={slogan}
+                    onChange={(e) => setSlogan(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-550"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3.5 rounded-xl font-bold bg-indigo-650 hover:bg-indigo-705 text-white text-center transition active:scale-98 cursor-pointer shadow-md mt-4 flex items-center justify-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  Confirmar Cadastro & Ativar
+                </button>
+
+              </form>
+            </div>
+
+            {/* Administrador Credentials Management card */}
+            <div className="bg-slate-950 border border-white/5 rounded-3xl p-6 shadow-xl">
+              <h3 className="text-lg font-bold flex items-center gap-2 mb-4 font-sans text-white border-b border-white/5 pb-2">
+                <Lock size={18} className="text-amber-500" />
+                Credenciais do Administrador
+              </h3>
+
+              {adminError && (
+                <div className="p-3 mb-3 rounded-xl bg-red-950/40 border border-red-800 text-red-200 text-xs">
+                  {adminError}
+                </div>
+              )}
+
+              {adminSuccess && (
+                <div className="p-3 mb-3 rounded-xl bg-emerald-950/40 border border-emerald-800 text-emerald-250 text-xs">
+                  {adminSuccess}
+                </div>
+              )}
+
+              <form onSubmit={handleUpdateAdmin} className="space-y-4 text-xs font-medium">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-sans">Usuário Administrativo</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="admin"
+                    value={adminUsername}
+                    onChange={(e) => setAdminUsername(e.target.value.replace(/[^a-zA-Z0-9_\-]/g, ''))}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-amber-500 font-mono text-sm"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-sans">E-mail Administrativo</label>
                   <input
                     type="email"
                     required
-                    placeholder="marcus@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505"
+                    placeholder="admin@vocalis.com.br"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-amber-500 text-sm"
                   />
                 </div>
+
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Senha Login *</label>
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-sans">Senha de Acesso</label>
                   <input
                     type="text"
                     required
-                    placeholder="123"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505 font-mono"
+                    placeholder="Sua senha..."
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-amber-500 font-mono text-sm"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Telefone Whatsapp *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="5511999998888"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505 font-mono"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Gênero Musical *</label>
-                  <input
-                    type="text"
-                    required
-                    value={genre}
-                    onChange={(e) => setGenre(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-505"
-                  />
-                </div>
-              </div>
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl font-bold bg-amber-600 hover:bg-amber-700 text-black text-center transition active:scale-98 cursor-pointer shadow-md mt-2 flex items-center justify-center gap-1.5"
+                >
+                  <Check size={14} />
+                  Salvar Credenciais
+                </button>
+              </form>
+            </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Cor Temática de Destaque</label>
-                <div className="grid grid-cols-4 gap-2 pt-1 font-mono text-[9px]">
-                  {(['amber', 'emerald', 'blue', 'rose', 'crimson', 'violet', 'sky', 'indigo'] as SingerProfile['themeColor'][]).map(col => (
-                    <button
-                      type="button"
-                      key={col}
-                      onClick={() => setThemeColor(col)}
-                      className={`py-1.5 rounded-lg border text-center transition flex flex-col items-center gap-1 capitalize ${
-                        themeColor === col 
-                          ? 'border-indigo-550 text-white bg-white/10 font-bold' 
-                          : 'border-white/5 text-slate-400 hover:text-white'
-                      }`}
-                    >
-                      <span className={`w-3.5 h-3.5 rounded-full ${getThemeColorClass(col).split(' ')[0]}`} />
-                      {col}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1 pt-2">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Slogan Comercial Resumido</label>
-                <input
-                  type="text"
-                  placeholder="Ex: O show sertanejo perfeito para noites elegantes"
-                  value={slogan}
-                  onChange={(e) => setSlogan(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-indigo-550"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl font-bold bg-indigo-650 hover:bg-indigo-705 text-white text-center transition active:scale-98 cursor-pointer shadow-md mt-4 flex items-center justify-center gap-1.5"
-              >
-                <Plus size={14} />
-                Confirmar Cadastro & Ativar
-              </button>
-
-            </form>
           </div>
 
           {/* List of Registered Singers */}

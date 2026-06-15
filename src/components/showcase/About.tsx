@@ -28,7 +28,7 @@ export default function About({ singer }: AboutProps) {
               className="relative rounded-2xl overflow-hidden shadow-2xl aspect-[3/4] bg-zinc-950 border border-zinc-800"
             >
               <img 
-                src={singer.bioPhotoUrl || getNthImage(singer.gallery, 1, singer.avatarUrl || 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=80&w=600&h=800')} 
+                src={singer.bioPhotoUrl || getNthImage(singer.gallery, 1, 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=600&h=800')} 
                 alt={`Apresentação ao vivo de ${singer.name}`}
                 className="w-full h-full object-cover filter brightness-95 contrast-105 hover:scale-105 transition duration-700"
                 referrerPolicy="no-referrer"

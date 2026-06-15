@@ -32,6 +32,11 @@ service cloud.firestore {
       allow delete: if isValidId(username);
     }
 
+    // admin credentials block
+    match /admin_config/{docId} {
+      allow read, write: if docId == 'credentials';
+    }
+
     // 1. Default-deny catch-all (placed at the bottom to prevent interference)
     match /{document=**} {
       allow read, write: if false;

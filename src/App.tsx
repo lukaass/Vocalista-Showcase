@@ -126,7 +126,7 @@ export default function App() {
             <span className="text-4xl">⚠️</span>
             <h2 className="text-2xl font-bold mt-4 font-sans text-white">Vitrine Não Localizada</h2>
             <p className="text-zinc-400 text-sm mt-2 leading-relaxed">
-              O cantor com o username <code className="text-amber-500 font-mono">@{singerSlug}</code> não foi encontrado ou foi removido da plataforma pelo proprietário.
+              O cantor com o username <code className="text-amber-500 font-mono">@{singerSlug}</code> não foi encontrado ou foi removido da plataforma pelo administrador.
             </p>
             <button 
               onClick={() => handleNavigate('landing')}

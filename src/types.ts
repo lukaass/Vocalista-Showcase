@@ -62,3 +62,10 @@ export interface AdminUser {
   role: 'owner' | 'singer';
   singerId?: string; // link to the SingerProfile if role is 'singer'
 }
+
+export interface AdminCredentials {
+  email: string;
+  password: string;
+  username: string;
+}
+

@@ -557,12 +557,15 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
                       />
                     </label>
                   </div>
+                  <span className="text-[10px] text-slate-500 leading-snug">
+                    Otimizado e cortado para miniatura circular no cabeçalho e listagem do catálogo. Os pixels podem ficar aparentes se esticado.
+                  </span>
                 </div>
 
-                <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
-                  <label className="text-xs font-bold text-amber-500 uppercase tracking-wide flex justify-between">
+                <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+                  <label className="text-xs font-bold text-amber-550 uppercase tracking-wide flex justify-between items-center">
                     <span>Foto da Biografia (Site • Alta Resolução)</span>
-                    <span className="text-[9px] text-slate-400 normal-case">Previne pixels visíveis</span>
+                    <span className="text-[10px] text-amber-505/80 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest font-mono">Recomendado</span>
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -582,6 +585,9 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
                       />
                     </label>
                   </div>
+                  <span className="text-[10px] text-zinc-400 leading-snug">
+                     💡 Exibida com destaque em plano vertical ao lado de sua Biografia. Envie um retrato nítido em alta qualidade para impressionar os contratantes!
+                  </span>
                 </div>
               </div>
 

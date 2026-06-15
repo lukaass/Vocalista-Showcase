@@ -1,5 +1,5 @@
-import { SingerProfile } from '../types';
-import { collection, doc, getDocs, setDoc, deleteDoc } from 'firebase/firestore';
+import { SingerProfile, AdminCredentials } from '../types';
+import { collection, doc, getDocs, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db, auth, initializeFirebaseConnection } from './firebase';
 
 const STORAGE_KEY = 'vocalis_showcase_db_v3';
@@ -416,3 +416,61 @@ export async function deleteSinger(username: string): Promise<void> {
     handleFirestoreError(e, OperationType.DELETE, docPath);
   }
 }
+
+const ADMIN_STORAGE_KEY = 'vocalis_admin_credentials_v3';
+
+const DEFAULT_ADMIN: AdminCredentials = {
+  username: 'admin',
+  email: 'admin@vocalis.com.br',
+  password: '123'
+};
+
+export function getAdminCredentials(): AdminCredentials {
+  const cached = localStorage.getItem(ADMIN_STORAGE_KEY);
+  if (cached) {
+    try {
+      return JSON.parse(cached) as AdminCredentials;
+    } catch (e) {
+      console.error('Error parsing admin credentials from localStorage', e);
+    }
+  }
+  return DEFAULT_ADMIN;
+}
+
+export function saveAdminCredentialsLocally(creds: AdminCredentials) {
+  localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(creds));
+}
+
+export async function syncAdminCredentials(): Promise<AdminCredentials> {
+  await initializeFirebaseConnection();
+  try {
+    const docRef = doc(db, 'admin_config', 'credentials');
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data() as AdminCredentials;
+      saveAdminCredentialsLocally(data);
+      return data;
+    } else {
+      // Seed default in Firestore
+      const defaultCreds = getAdminCredentials();
+      await setDoc(docRef, defaultCreds);
+      return defaultCreds;
+    }
+  } catch (error) {
+    console.warn("Failed to sync admin credentials from Firestore, falling back to local storage.", error);
+    return getAdminCredentials();
+  }
+}
+
+export async function updateAdminCredentials(creds: AdminCredentials): Promise<boolean> {
+  saveAdminCredentialsLocally(creds);
+  try {
+    const docRef = doc(db, 'admin_config', 'credentials');
+    await setDoc(docRef, creds);
+    return true;
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, 'admin_config/credentials');
+    return false;
+  }
+}
+
