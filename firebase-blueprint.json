@@ -1,0 +1,36 @@
+{
+  "entities": {
+    "singer": {
+      "title": "Singer",
+      "description": "Singer profile and options",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "name": { "type": "string" },
+        "slogan": { "type": "string" },
+        "bio": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "genre": { "type": "string" },
+        "themeColor": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "instagram": { "type": "string" },
+        "youtube": { "type": "string" },
+        "spotify": { "type": "string" },
+        "gallery": { "type": "array" },
+        "plans": { "type": "array" },
+        "events": { "type": "array" },
+        "testimonials": { "type": "array" },
+        "faqs": { "type": "array" }
+      },
+      "required": ["username", "name", "phone", "email"]
+    }
+  },
+  "firestore": {
+    "/singers/{username}": {
+      "schema": "singer",
+      "description": "Collection of all singer profiles"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Vocalis Showcase",
+  "description": "Vitrine comercial para contratação direta de cantores, com plano de pacotes e envio de dados e orçamentos via WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
