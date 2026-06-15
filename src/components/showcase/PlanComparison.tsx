@@ -55,11 +55,18 @@ export default function PlanComparison({ singer }: PlanComparisonProps) {
       p3: 'Roborizada Completa + Efeitos',
     },
     {
-      title: 'Contrato Digital & NF-e',
-      desc: 'Garantia jurídica e contabilidade assegurada para corporativos.',
-      p1: <Check size={16} className={`mx-auto ${theme.primaryText}`} />,
-      p2: <Check size={16} className={`mx-auto ${theme.primaryText}`} />,
-      p3: <Check size={16} className={`mx-auto ${theme.primaryText}`} />,
+      title: 'Contrato de Show',
+      desc: singer.offersContract ? 'Segurança jurídica garantida por contrato formal assinado digitalmente.' : 'Contrato formal sob consulta com a produção.',
+      p1: singer.offersContract ? <Check size={16} className={`mx-auto ${theme.primaryText}`} /> : <Minus size={16} className="text-zinc-650 mx-auto" />,
+      p2: singer.offersContract ? <Check size={16} className={`mx-auto ${theme.primaryText}`} /> : <Minus size={16} className="text-zinc-650 mx-auto" />,
+      p3: singer.offersContract ? <Check size={16} className={`mx-auto ${theme.primaryText}`} /> : <Minus size={16} className="text-zinc-650 mx-auto" />,
+    },
+    {
+      title: 'Nota Fiscal (NF-e)',
+      desc: singer.offersInvoice ? 'Emissão de Nota Fiscal oficial para a contabilidade do seu evento.' : 'Artista não realiza emissão direta de nota fiscal.',
+      p1: singer.offersInvoice ? <Check size={16} className={`mx-auto ${theme.primaryText}`} /> : <Minus size={16} className="text-zinc-650 mx-auto" />,
+      p2: singer.offersInvoice ? <Check size={16} className={`mx-auto ${theme.primaryText}`} /> : <Minus size={16} className="text-zinc-650 mx-auto" />,
+      p3: singer.offersInvoice ? <Check size={16} className={`mx-auto ${theme.primaryText}`} /> : <Minus size={16} className="text-zinc-650 mx-auto" />,
     }
   ];
 

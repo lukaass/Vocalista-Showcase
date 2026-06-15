@@ -48,6 +48,15 @@ export interface SingerProfile {
   instagram?: string;
   youtube?: string;
   spotify?: string;
+  offersInvoice?: boolean;
+  offersContract?: boolean;
+  
+  // Travel cost options
+  travelEnabled?: boolean;
+  travelBaseRadius?: number;
+  travelStepKm?: number;
+  travelIncrementPercent?: number;
+  travelOrigin?: string;
   
   // Custom arrays
   gallery: string[]; // Image URLs

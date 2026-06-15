@@ -120,6 +120,13 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
       genre: genre.trim(),
       themeColor: themeColor,
       avatarUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=300&h=300',
+      offersInvoice: true,
+      offersContract: true,
+      travelEnabled: true,
+      travelBaseRadius: 50,
+      travelStepKm: 50,
+      travelIncrementPercent: 10,
+      travelOrigin: 'São Paulo - SP',
       gallery: [
         'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800&h=530',
         'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=80&w=800&h=530',

@@ -32,6 +32,13 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
   const [instagram, setInstagram] = useState(profile?.instagram || '');
   const [youtube, setYoutube] = useState(profile?.youtube || '');
   const [spotify, setSpotify] = useState(profile?.spotify || '');
+  const [offersInvoice, setOffersInvoice] = useState(profile?.offersInvoice ?? false);
+  const [offersContract, setOffersContract] = useState(profile?.offersContract ?? false);
+  const [travelEnabled, setTravelEnabled] = useState(profile?.travelEnabled ?? false);
+  const [travelBaseRadius, setTravelBaseRadius] = useState<number>(profile?.travelBaseRadius ?? 50);
+  const [travelStepKm, setTravelStepKm] = useState<number>(profile?.travelStepKm ?? 50);
+  const [travelIncrementPercent, setTravelIncrementPercent] = useState<number>(profile?.travelIncrementPercent ?? 10);
+  const [travelOrigin, setTravelOrigin] = useState<string>(profile?.travelOrigin || 'São Paulo - SP');
 
   // Subsections fields state
   const [plans, setPlans] = useState<Plan[]>(profile?.plans || []);
@@ -40,6 +47,7 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
   const [testimonials, setTestimonials] = useState<Testimonial[]>(profile?.testimonials || []);
   const [faqs, setFaqs] = useState<FAQItem[]>(profile?.faqs || []);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [simDistance, setSimDistance] = useState<number>(100);
 
   // Creation temps for maps
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -87,6 +95,13 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
       instagram: instagram.trim(),
       youtube: youtube.trim(),
       spotify: spotify.trim(),
+      offersInvoice,
+      offersContract,
+      travelEnabled,
+      travelBaseRadius,
+      travelStepKm,
+      travelIncrementPercent,
+      travelOrigin: travelOrigin.trim(),
       gallery,
       plans,
       events,
@@ -511,6 +526,196 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
                   />
                 </div>
 
+              </div>
+
+              {/* Condições de Fechamento de Show */}
+              <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/5 space-y-4">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  Condições de Contratação e Fechamento
+                </h3>
+                <p className="text-xs text-zinc-400 leading-snug">
+                  Selecione quais garantias comerciais e fiscais oficiais você oferece aos contratantes para exibição automática na sua vitrine comparativa.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  
+                  {/* Offers Invoice Option */}
+                  <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-905/65 cursor-pointer border border-white/5 transition select-none">
+                    <input
+                      type="checkbox"
+                      checked={offersInvoice}
+                      onChange={(e) => setOffersInvoice(e.target.checked)}
+                      className="mt-1 accent-amber-500 w-4 h-4 rounded"
+                    />
+                    <div>
+                      <span className="block text-xs font-bold text-white uppercase tracking-wider">Oferece Emissão de Nota Fiscal (NF-e)</span>
+                      <span className="block text-[11px] text-zinc-500 mt-0.5 leading-snug">
+                        Marque se você pode emitir nota fiscal de prestação de serviços (essencial para eventos corporativos).
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Offers Contract Option */}
+                  <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-905/65 cursor-pointer border border-white/5 transition select-none">
+                    <input
+                      type="checkbox"
+                      checked={offersContract}
+                      onChange={(e) => setOffersContract(e.target.checked)}
+                      className="mt-1 accent-amber-500 w-4 h-4 rounded"
+                    />
+                    <div>
+                      <span className="block text-xs font-bold text-white uppercase tracking-wider">Oferece Contrato Formal Digital</span>
+                      <span className="block text-[11px] text-zinc-500 mt-0.5 leading-snug">
+                        Marque se você formaliza as datas via contrato legal assinado digitalmente pelas partes.
+                      </span>
+                    </div>
+                  </label>
+
+                </div>
+              </div>
+
+              {/* Configuração de Viagem e Deslocamento (Logística) */}
+              <div className="p-4 rounded-2xl bg-zinc-900/60 border border-white/5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Adicional para Logs. de Viagem / Deslocamento
+                  </h3>
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={travelEnabled}
+                      onChange={(e) => setTravelEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-zinc-800 rounded-full peer peer-focus:ring-2 peer-focus:ring-indigo-500 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-zinc-450 after:border-zinc-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white border border-white/5" />
+                    <span className="ml-2 text-xs font-bold text-white uppercase tracking-wider">{travelEnabled ? "ATIVO" : "INATIVO"}</span>
+                  </label>
+                </div>
+                <p className="text-xs text-zinc-405 leading-snug">
+                  Defina como cobrar o deslocamento para shows fora de sua base de forma transparente. O sistema simulará o orçamento considerando o acréscimo de deslocamento para o contratante.
+                </p>
+
+                {travelEnabled && (
+                  <div className="space-y-4 pt-2">
+                    {/* Cidade de Origem / Base */}
+                    <div className="flex flex-col gap-1.5 p-3.5 rounded-xl bg-slate-950 border border-white/5">
+                      <label className="text-[10px] uppercase font-bold text-indigo-400 tracking-wider">Sua Cidade de Origem / Base *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: São Paulo - SP"
+                        value={travelOrigin}
+                        onChange={(e) => setTravelOrigin(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
+                      />
+                      <span className="text-[9px] text-zinc-500">Ponto zero (sua cidade-base atual) utilizado para simular e traçar o trajeto rodoviário oficial até o evento do contratante.</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      
+                      {/* Base Radius Limit */}
+                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-950 border border-white/5">
+                        <label className="text-[10px] uppercase font-bold text-slate-450 tracking-wider">Raio Base Incluso (Km)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            value={travelBaseRadius}
+                            onChange={(e) => setTravelBaseRadius(Math.max(0, parseInt(e.target.value) || 0))}
+                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white font-mono"
+                          />
+                          <span className="text-xs text-zinc-500 font-mono font-medium">km</span>
+                        </div>
+                        <span className="text-[9px] text-zinc-500 mt-1">Até essa distância, show é feito sob preço padrão.</span>
+                      </div>
+
+                      {/* Step size */}
+                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-950 border border-white/5">
+                        <label className="text-[10px] uppercase font-bold text-slate-450 tracking-wider">Incrementar a cada (Km)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={travelStepKm}
+                            onChange={(e) => setTravelStepKm(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white font-mono"
+                          />
+                          <span className="text-xs text-zinc-500 font-mono font-medium">km</span>
+                        </div>
+                        <span className="text-[9px] text-zinc-500 mt-1">Lote/passo de distância para aplicação de taxas.</span>
+                      </div>
+
+                      {/* Percentage Surcharge */}
+                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-slate-950 border border-white/5">
+                        <label className="text-[10px] uppercase font-bold text-slate-450 tracking-wider">Taxa por Etapa (%)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={travelIncrementPercent}
+                            onChange={(e) => setTravelIncrementPercent(Math.max(0, Math.min(100, parseInt(e.target.value) || 0)))}
+                            className="w-full px-2 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white font-mono"
+                          />
+                          <span className="text-xs text-zinc-400 font-mono font-medium">%</span>
+                        </div>
+                        <span className="text-[9px] text-zinc-550 mt-1">Acréscimo percentual calculado a cada etapa de distância.</span>
+                      </div>
+
+                    </div>
+
+                    {/* Calculation Simulator */}
+                    <div className="p-3.5 rounded-xl bg-indigo-500/5 border border-indigo-500/10 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-indigo-400 flex items-center gap-1.5 uppercase tracking-wide">
+                          ⚡ Simulador de Logística
+                        </span>
+                        <span className="text-[10px] text-zinc-500 font-mono font-medium">Veja como a conta ficará para o contratante</span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="w-full sm:w-1/2 flex flex-col gap-1">
+                          <div className="flex justify-between text-[11px] font-mono text-zinc-400">
+                            <span>Simular Distância:</span>
+                            <span className="text-white font-bold">{simDistance} km</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="500"
+                            step="10"
+                            value={simDistance}
+                            onChange={(e) => setSimDistance(parseInt(e.target.value) || 0)}
+                            className="w-full accent-indigo-505 bg-slate-950 rounded-lg appearance-none h-1.5 cursor-pointer mt-1"
+                          />
+                        </div>
+
+                        <div className="w-full sm:w-1/2 p-2.5 rounded-lg bg-slate-950 border border-white/5 text-xs text-slate-300 leading-normal space-y-1">
+                          <div>
+                            Base Livre: <span className="text-white font-mono font-semibold">{travelBaseRadius} km</span>
+                          </div>
+                          <div>
+                            Surgimento de Taxa: 
+                            {simDistance <= travelBaseRadius ? (
+                              <span className="text-emerald-400 font-semibold ml-1">Simulado com custo ZERO (Dentro da base!)</span>
+                            ) : (
+                              <span className="text-white ml-1">
+                                {simDistance - travelBaseRadius} km excedentes ({Math.ceil((simDistance - travelBaseRadius) / travelStepKm)} lotes de {travelStepKm} km)
+                              </span>
+                            )}
+                          </div>
+                          {simDistance > travelBaseRadius && (
+                            <div className="border-t border-white/5 pt-1 mt-1 text-[11px]">
+                              Aumento Total: <span className="text-amber-400 font-mono font-bold">+{Math.ceil((simDistance - travelBaseRadius) / travelStepKm) * travelIncrementPercent}%</span> no valor do plano!
+                            </div>
+                           )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">

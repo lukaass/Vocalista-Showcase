@@ -37,14 +37,22 @@ export default function About({ singer }: AboutProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-transparent to-transparent pointer-events-none" />
               
               {/* Experiência Badge */}
-              <div className={`absolute bottom-6 left-6 right-6 p-4 rounded-xl backdrop-blur-md bg-zinc-900/60 border border-zinc-800 text-white`}>
+              <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl backdrop-blur-md bg-zinc-900/60 border border-zinc-800 text-white">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${theme.primaryBg} text-black`}>
                     <Award size={20} />
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm">Garantia Comercial</h4>
-                    <p className="text-xs text-white/85">Contrato digital e nota fiscal oficial inclusos.</p>
+                    <p className="text-xs text-white/85">
+                      {singer.offersContract && singer.offersInvoice 
+                        ? 'Contrato digital e nota fiscal inclusos.'
+                        : singer.offersContract 
+                          ? 'Contrato digital incluso.'
+                          : singer.offersInvoice 
+                            ? 'Nota fiscal oficial inclusa.'
+                            : 'Negociação segura direto com o artista.'}
+                    </p>
                   </div>
                 </div>
               </div>
