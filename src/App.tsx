@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getSinger, importSinger, syncFromFirestore } from './services/db';
+import { getSinger, importSinger, syncFromFirestore, updateAdminCredentials } from './services/db';
 import { decodeProfile } from './utils/mediaParser';
 import PlatformLanding from './components/PlatformLanding';
 import ShowcaseView from './components/ShowcaseView';
@@ -51,6 +51,26 @@ export default function App() {
     const initApp = async () => {
       try {
         await syncFromFirestore();
+        
+        // Verifica se há pedido secreto de redefinição de administrador na URL
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.get('reset_admin') === 'true') {
+          console.warn("Emergency query trigger: Resetting admin credentials to defaults ('admin' / '123')");
+          await updateAdminCredentials({
+            username: 'admin',
+            email: 'admin@vocalis.com.br',
+            password: '123'
+          });
+          
+          // Limpa silenciosamente o parâmetro da URL do navegador
+          const cleanParams = new URLSearchParams(window.location.search);
+          cleanParams.delete('reset_admin');
+          const finalSearch = cleanParams.toString() ? `?${cleanParams.toString()}` : '';
+          window.history.replaceState(null, '', `${window.location.pathname}${finalSearch}`);
+          
+          // Alerta o desenvolvedor que o reset funcionou com sucesso
+          alert("🔑 Vocalis - Redefinição de Sucesso!\n\nAs credenciais administrativas do Administrador foram restauradas de forma segura para o padrão original:\n\n👤 Usuário: admin\n🔑 Senha: 123\n📧 E-mail: admin@vocalis.com.br\n\nAgora você pode fazer o login normalmente como Administrador.");
+        }
       } catch (err) {
         console.error("Failed to sync database from Firestore:", err);
       } finally {
