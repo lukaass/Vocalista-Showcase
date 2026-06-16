@@ -87,8 +87,13 @@ export default function AdminLogin({ onLoginSuccess, onGoBack }: AdminLoginProps
     const cleanEmail = recoveryEmail.trim().toLowerCase();
 
     if (loginRole === 'owner') {
-      if (cleanEmail !== adminCreds.email.toLowerCase()) {
-        setRecoveryError('O e-mail digitado não coincide com o do Administrador cadastrado.');
+      const allowedEmails = [
+        adminCreds.email.toLowerCase(),
+        adminCreds.recoveryEmail ? adminCreds.recoveryEmail.toLowerCase() : ''
+      ].filter(Boolean);
+
+      if (!allowedEmails.includes(cleanEmail)) {
+        setRecoveryError('O e-mail digitado não coincide com o e-mail administrativo ou de recuperação do Administrador cadastrado.');
         return;
       }
     } else {
@@ -331,17 +336,20 @@ export default function AdminLogin({ onLoginSuccess, onGoBack }: AdminLoginProps
                 {recoveryStep === 'email' && (
                   <form onSubmit={handleSendRecoveryCode} className="space-y-4">
                     <p className="text-zinc-400 text-xs leading-relaxed">
-                      Digite o e-mail de acesso cadastrado para o perfil selecionado (<span className="text-amber-500 font-semibold">{loginRole === 'owner' ? 'Administrador' : 'Cantor'}</span>). Enviaremos um código simulado e seguro de redefinição imediata.
+                      {loginRole === 'owner' 
+                        ? 'Digite o e-mail de recuperação de conta (ou seu e-mail administrativo principal) definido no painel para o Administrador.'
+                        : 'Digite o e-mail de acesso cadastrado para o perfil do Cantor correspondente.'
+                      } Enviaremos um código simulado e seguro de redefinição imediata.
                     </p>
 
                     <div className="flex flex-col gap-1.5">
                       <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                        E-mail de Cadastro
+                        {loginRole === 'owner' ? 'E-mail de Recuperação ou de Cadastro' : 'E-mail de Cadastro'}
                       </label>
                       <input
                         type="email"
                         required
-                        placeholder="Ex: contato@perfil.com.br"
+                        placeholder={loginRole === 'owner' ? 'Ex: seu-email-de-recuperacao@email.com' : 'Ex: contato@cantor.com.br'}
                         value={recoveryEmail}
                         onChange={(e) => setRecoveryEmail(e.target.value)}
                         className="w-full px-4 py-3 rounded-xl border border-zinc-820 bg-zinc-950 text-sm outline-none focus:border-amber-500 transition text-white placeholder-zinc-700"

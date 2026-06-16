@@ -34,6 +34,7 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
   const [adminUsername, setAdminUsername] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [adminRecoveryEmail, setAdminRecoveryEmail] = useState('');
   const [adminSuccess, setAdminSuccess] = useState<string | null>(null);
   const [adminError, setAdminError] = useState<string | null>(null);
 
@@ -43,6 +44,7 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
     setAdminUsername(creds.username);
     setAdminEmail(creds.email);
     setAdminPassword(creds.password);
+    setAdminRecoveryEmail(creds.recoveryEmail || creds.email);
   }, []);
 
   const handleUpdateAdmin = async (e: React.FormEvent) => {
@@ -53,6 +55,7 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
     const cleanUser = adminUsername.trim().toLowerCase();
     const cleanMail = adminEmail.trim().toLowerCase();
     const cleanPass = adminPassword;
+    const cleanRecoveryMail = adminRecoveryEmail.trim().toLowerCase();
 
     if (cleanUser.length < 3) {
       setAdminError('O usuário do administrador deve ter pelo menos 3 caracteres.');
@@ -66,11 +69,16 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
       setAdminError('A senha do administrador deve ter pelo menos 3 caracteres.');
       return;
     }
+    if (cleanRecoveryMail.length < 5 || !cleanRecoveryMail.includes('@')) {
+      setAdminError('Por favor, insira um e-mail de recuperação válido.');
+      return;
+    }
 
     const updated = await updateAdminCredentials({
       username: cleanUser,
       email: cleanMail,
-      password: cleanPass
+      password: cleanPass,
+      recoveryEmail: cleanRecoveryMail
     });
 
     if (updated) {
@@ -475,6 +483,21 @@ export default function PlatformOwnerDashboard({ onLogout, onImpersonateSinger }
                     onChange={(e) => setAdminEmail(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/5 text-slate-100 outline-none focus:border-amber-500 text-sm"
                   />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-amber-500 font-sans">E-mail de Recuperação (Reset de Senha)</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="Ex: recuperacao@seuemail.com"
+                    value={adminRecoveryEmail}
+                    onChange={(e) => setAdminRecoveryEmail(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-amber-500/20 text-slate-100 outline-none focus:border-amber-500 text-sm hover:border-amber-550 transition"
+                  />
+                  <span className="text-[10px] text-slate-500 font-light leading-normal mt-0.5">
+                    Utilize este e-mail para receber o código simulado se você esquecer as credenciais novamente.
+                  </span>
                 </div>
 
                 <div className="flex flex-col gap-1">

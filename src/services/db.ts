@@ -436,7 +436,8 @@ const ADMIN_STORAGE_KEY = 'vocalis_admin_credentials_v3';
 const DEFAULT_ADMIN: AdminCredentials = {
   username: 'admin',
   email: 'admin@vocalis.com.br',
-  password: '123'
+  password: '123',
+  recoveryEmail: 'admin@vocalis.com.br'
 };
 
 export function getAdminCredentials(): AdminCredentials {

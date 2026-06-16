@@ -76,5 +76,6 @@ export interface AdminCredentials {
   email: string;
   password: string;
   username: string;
+  recoveryEmail?: string;
 }
 
