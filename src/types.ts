@@ -44,6 +44,7 @@ export interface SingerProfile {
   themeColor: 'amber' | 'emerald' | 'blue' | 'indigo' | 'rose' | 'crimson' | 'violet' | 'sky';
   logoUrl?: string; // Or a letter mark
   avatarUrl?: string;
+  coverUrl?: string;
   bioPhotoUrl?: string;
   instagram?: string;
   youtube?: string;

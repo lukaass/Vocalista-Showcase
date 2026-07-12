@@ -106,7 +106,7 @@ export default function PlatformLanding({ onSelectSinger, onGoToAdmin }: Platfor
                     {/* Header Image placeholder background */}
                     <div className="relative aspect-[16/10] bg-[#09090b] overflow-hidden">
                       <img 
-                        src={getFirstImage(singer.gallery, 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=600&h=400')} 
+                        src={singer.coverUrl || getFirstImage(singer.gallery, 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=600&h=400')} 
                         alt={singer.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500 filter brightness-95"
                         referrerPolicy="no-referrer"

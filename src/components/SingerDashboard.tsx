@@ -28,6 +28,7 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
   const [genre, setGenre] = useState(profile?.genre || '');
   const [themeColor, setThemeColor] = useState<SingerProfile['themeColor']>(profile?.themeColor || 'amber');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl || '');
+  const [coverUrl, setCoverUrl] = useState(profile?.coverUrl || '');
   const [bioPhotoUrl, setBioPhotoUrl] = useState(profile?.bioPhotoUrl || '');
   const [instagram, setInstagram] = useState(profile?.instagram || '');
   const [youtube, setYoutube] = useState(profile?.youtube || '');
@@ -91,6 +92,7 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
       genre: genre.trim(),
       themeColor: themeColor,
       avatarUrl: avatarUrl.trim(),
+      coverUrl: coverUrl.trim(),
       bioPhotoUrl: bioPhotoUrl.trim(),
       instagram: instagram.trim(),
       youtube: youtube.trim(),
@@ -231,6 +233,46 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
           ctx.drawImage(img, 0, 0, width, height);
           const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
           setBioPhotoUrl(dataUrl);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCoverPhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_COVER_PHOTO_DIMENSION = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_COVER_PHOTO_DIMENSION) {
+            height = Math.round((height * MAX_COVER_PHOTO_DIMENSION) / width);
+            width = MAX_COVER_PHOTO_DIMENSION;
+          }
+        } else {
+          if (height > MAX_COVER_PHOTO_DIMENSION) {
+            width = Math.round((width * MAX_COVER_PHOTO_DIMENSION) / height);
+            height = MAX_COVER_PHOTO_DIMENSION;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          setCoverUrl(dataUrl);
         }
       };
       img.src = event.target?.result as string;
@@ -792,6 +834,34 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
                   </div>
                   <span className="text-[10px] text-zinc-400 leading-snug">
                      💡 Exibida com destaque em plano vertical ao lado de sua Biografia. Envie um retrato nítido em alta qualidade para impressionar os contratantes!
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1.5 sm:col-span-2 p-3 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide flex justify-between items-center">
+                    <span>Foto de Capa do Site (Hero e Cartão de Listagem)</span>
+                    <span className="text-[10px] text-indigo-305/80 bg-indigo-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest font-mono">Fundo / Vitrine</span>
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={coverUrl}
+                      onChange={(e) => setCoverUrl(e.target.value)}
+                      placeholder="Carregue ou insira link de imagem para a capa principal..."
+                      className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl text-sm text-white outline-none focus:border-indigo-505 font-mono"
+                    />
+                    <label className="flex items-center justify-center px-4 py-3 bg-indigo-500 hover:bg-indigo-600 transition text-black font-bold rounded-xl cursor-pointer text-sm whitespace-nowrap">
+                      <span>Upload Capa</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverPhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <span className="text-[10px] text-zinc-400 leading-snug">
+                     💡 Esta foto será exibida como imagem de fundo de alta qualidade (Hero) em sua Vitrine Comercial e como a imagem de capa do seu cartão na Vitrine de Cantores Credenciados da página inicial.
                   </span>
                 </div>
               </div>

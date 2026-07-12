@@ -17,7 +17,7 @@ export default function Hero({ singer }: HeroProps) {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 scale-105 filter blur-xs animate-pulse-slow"
         style={{ 
-          backgroundImage: `url(${getFirstImage(singer.gallery, 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=1200&h=600')})` 
+          backgroundImage: `url(${singer.coverUrl || getFirstImage(singer.gallery, 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=1200&h=600')})` 
         }}
       />
       
