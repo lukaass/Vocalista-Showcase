@@ -36,6 +36,39 @@ export default function BudgetForm({ singer, selectedPlanName }: BudgetFormProps
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
   };
 
+  // Helper to extract clean city and state, preventing private address leaks
+  const getCleanOriginCity = (origin: string): string => {
+    if (!origin) return 'São Paulo - SP';
+    const trimmed = origin.trim().toUpperCase();
+    
+    // Check for standard Brazilian states/regions to simplify and anonymize neighborhood info
+    if (trimmed.includes('DF') || trimmed.includes('DISTRITO FEDERAL') || trimmed.includes('ITAPOÃ') || trimmed.includes('ITAPOA')) {
+      return 'Brasília - DF';
+    }
+    if (trimmed.includes('SP') || trimmed.includes('SÃO PAULO') || trimmed.includes('SAO PAULO')) {
+      return 'São Paulo - SP';
+    }
+    if (trimmed.includes('RJ') || trimmed.includes('RIO DE JANEIRO')) {
+      return 'Rio de Janeiro - RJ';
+    }
+    if (trimmed.includes('MG') || trimmed.includes('MINAS GERAIS') || trimmed.includes('BELO HORIZONTE')) {
+      return 'Belo Horizonte - MG';
+    }
+    
+    // Fallback search for any 2-letter state code in Brazil
+    const stateMatch = origin.match(/\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\b/i);
+    if (stateMatch) {
+      const uf = stateMatch[1].toUpperCase();
+      if (uf === 'DF') return 'Brasília - DF';
+      if (uf === 'SP') return 'São Paulo - SP';
+      if (uf === 'RJ') return 'Rio de Janeiro - RJ';
+      if (uf === 'MG') return 'Belo Horizonte - MG';
+      return `Região Metropolitana - ${uf}`;
+    }
+    
+    return 'São Paulo - SP';
+  };
+
   // Convert "R$ 2.500" or similar text price to integer
   const getPlanPriceNumber = (planName: string) => {
     const p = singer.plans.find(x => x.name === planName);
@@ -95,7 +128,7 @@ export default function BudgetForm({ singer, selectedPlanName }: BudgetFormProps
       // 1. Geocode origin
       const originCoords = await geocodeAddress(originQuery);
       if (!originCoords) {
-        setRouteError(`Não foi possível determinar as coordenadas de origem no satélite (${originQuery}).`);
+        setRouteError(`Não foi possível determinar as coordenadas do escritório base no satélite (${getCleanOriginCity(originQuery)}).`);
         setIsCalculatingRoute(false);
         return;
       }
@@ -173,7 +206,7 @@ export default function BudgetForm({ singer, selectedPlanName }: BudgetFormProps
       const { surchargePercent, surchargeAmount, total } = getTravelCalculation();
       const planPrice = getPlanPriceNumber(plan);
       logisticsBlock = `\n*LOGÍSTICA & VALOR ESTIMADO:*
-• Rota Base: ${singer.travelOrigin || 'Não definida'} ➔ ${eventCity} - ${eventState}
+• Cidade Base do Artista: ${getCleanOriginCity(singer.travelOrigin || 'Não definida')} ➔ ${eventCity} - ${eventState}
 • Distância Rodoviária: ${distanceVal} km
 • Preço base do formato: ${formatBRL(planPrice)}
 • Adicional de Viagem (+${surchargePercent}%): ${formatBRL(surchargeAmount)}
@@ -545,85 +578,66 @@ _Gerado automaticamente via Vitrine Comercial Premium de ${singer.name}._`;
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold text-zinc-350 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                       <MapPin size={13} className={theme.primaryText} />
-                      Logística e Transporte do Artista
+                      Logística e Deslocamento do Artista
                     </label>
                     <span className="text-[9px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold uppercase tracking-wider">
-                      Cálculo Oficial e Seguro
+                      Cálculo Seguro de Viagem
                     </span>
                   </div>
 
                   <p className="text-xs text-zinc-400 font-light leading-relaxed">
-                    Para garantir a viabilidade técnica e pontualidade, calculamos a distância automática entre a base de <strong>{singer.name}</strong> ({singer.travelOrigin || 'São Paulo - SP'}) e o local do seu evento.
+                    Para viabilidade técnica e pontualidade, calculamos a distância rodoviária automática a partir do escritório base do artista ({getCleanOriginCity(singer.travelOrigin)}) até a cidade do seu evento.
                   </p>
 
                   <div className="flex flex-col gap-4 bg-zinc-900/30 p-4 rounded-xl border border-zinc-800">
                     
-                    {/* Botão de cálculo ou status */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="text-xs font-semibold text-zinc-350">
-                          Rota: <span className="text-white font-mono">{singer.travelOrigin || 'São Paulo - SP'}</span> ➔ <span className="text-emerald-400 font-bold font-mono">{eventCity ? `${eventCity} - ${eventState}` : 'Digite a Cidade acima'}</span>
-                        </div>
-                        {routeError && (
-                          <div className="text-[11px] text-rose-400 font-medium">⚠️ {routeError}</div>
-                        )}
-                      </div>
-
-                      <button
-                        type="button"
-                        disabled={isCalculatingRoute || !eventCity.trim()}
-                        onClick={() => calculateDistanceAutomatically()}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                          eventCity.trim() 
-                            ? 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 active:scale-[0.98]' 
-                            : 'bg-zinc-900/50 text-zinc-650 cursor-not-allowed border border-white/5'
-                        }`}
-                      >
-                        {isCalculatingRoute ? (
-                          <>
-                            <span className="w-3.5 h-3.5 border-2 border-zinc-300 border-t-transparent rounded-full animate-spin" />
-                            Consultando Rota...
-                          </>
-                        ) : (
-                          <>
-                            🗺️ Calcular Rota Oficial
-                          </>
-                        )}
-                      </button>
-                    </div>
-
                     {/* Resultados consolidados */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-zinc-900">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       
                       {/* Distância */}
-                      <div className="flex flex-col justify-center p-3 rounded-xl bg-zinc-950/70 border border-zinc-900">
-                        <span className="text-[10px] text-zinc-500 uppercase tracking-wide font-bold">Distância Rodoviária</span>
+                      <div className="flex flex-col justify-center p-3 rounded-xl bg-zinc-950/70 border border-zinc-900 relative min-h-[80px]">
+                        <span className="text-[10px] text-zinc-500 uppercase tracking-wide font-bold">Distância Estimada</span>
                         
-                        <div className="flex items-baseline gap-1 mt-1">
-                          <span className="text-2xl font-black text-white font-mono">
-                            {distanceKm === '' || distanceKm === 0 ? '--' : distanceKm}
-                          </span>
-                          <span className="text-xs text-zinc-500 font-mono font-medium">km</span>
-                          
-                          {distanceKm !== '' && distanceKm > 0 && (
-                            <span className="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded ml-2 flex items-center gap-0.5">
-                              ✓ Confirmada
-                            </span>
-                          )}
-                        </div>
+                        {isCalculatingRoute ? (
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-xs text-zinc-450 font-mono">Calculando rota...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-baseline gap-1 mt-1">
+                              <span className="text-2xl font-black text-white font-mono">
+                                {distanceKm === '' || distanceKm === 0 ? '--' : distanceKm}
+                              </span>
+                              <span className="text-xs text-zinc-500 font-mono font-medium">km</span>
+                              
+                              {distanceKm !== '' && distanceKm > 0 && (
+                                <span className="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded ml-2 flex items-center gap-0.5 animate-fadeIn">
+                                  ✓ Concluído
+                                </span>
+                              )}
+                            </div>
 
-                        {distanceKm !== '' && distanceKm > 0 && (
-                          <span className="text-[10px] text-zinc-400 mt-1">
-                            {distanceKm <= (singer.travelBaseRadius ?? 50) 
-                              ? `Dentro da base de cortesia (${singer.travelBaseRadius ?? 50}km)!` 
-                              : `Taxa calculada sobre ${(distanceKm - (singer.travelBaseRadius ?? 50))}km extras.`
-                            }
-                          </span>
+                            {distanceKm !== '' && distanceKm > 0 && (
+                              <span className="text-[10px] text-zinc-400 mt-1 animate-fadeIn">
+                                {distanceKm <= (singer.travelBaseRadius ?? 50) 
+                                  ? `Dentro da base de cortesia (${singer.travelBaseRadius ?? 50}km)!` 
+                                  : `Taxa de deslocamento ativa (+${distanceKm - (singer.travelBaseRadius ?? 50)}km).`
+                                }
+                              </span>
+                            )}
+                          </>
+                        )}
+                        
+                        {routeError && !isCalculatingRoute && (
+                          <div className="text-[10px] text-rose-400 font-medium mt-1 leading-normal">
+                            ⚠️ Não mapeado. Use o controle manual.
+                          </div>
                         )}
                       </div>
 
                       {/* Orçamento das taxas */}
-                      <div className="space-y-1 text-xs leading-normal p-3 rounded-xl bg-zinc-950/70 border border-zinc-900">
+                      <div className="space-y-1.5 text-xs leading-normal p-3 rounded-xl bg-zinc-950/70 border border-zinc-900 flex flex-col justify-center">
                         {(() => {
                           const { surchargePercent, surchargeAmount, total } = getTravelCalculation();
                           const basePrice = getPlanPriceNumber(plan);
@@ -634,13 +648,13 @@ _Gerado automaticamente via Vitrine Comercial Premium de ${singer.name}._`;
                                 <span className="text-white font-mono font-semibold">{formatBRL(basePrice)}</span>
                               </div>
                               <div className="flex justify-between text-zinc-400">
-                                <span>Adicional de Viagem ({surchargePercent}%):</span>
+                                <span>Deslocamento ({surchargePercent}%):</span>
                                 <span className={`${surchargePercent > 0 ? 'text-amber-400' : 'text-emerald-400'} font-mono font-semibold`}>
                                   {surchargePercent > 0 ? `+ ${formatBRL(surchargeAmount)}` : 'R$ 0 (Incluso!)'}
                                 </span>
                               </div>
                               <div className="border-t border-zinc-900 pt-1.5 mt-1.5 flex justify-between text-xs font-bold">
-                                <span className="text-white">Orçamento Estimado:</span>
+                                <span className="text-white">Orçamento Total:</span>
                                 <span className={`${theme.primaryText} font-mono font-bold`}>{formatBRL(total)}</span>
                               </div>
                             </>
@@ -657,7 +671,7 @@ _Gerado automaticamente via Vitrine Comercial Premium de ${singer.name}._`;
                         onClick={() => setManualOverride(!manualOverride)}
                         className="text-[10px] text-zinc-500 hover:text-zinc-400 underline transition cursor-pointer"
                       >
-                        {manualOverride ? 'Ocultar ajuste manual' : 'Precisa de ajuste manual de distância?'}
+                        {manualOverride ? 'Ocultar ajuste manual' : 'Ajustar distância manualmente'}
                       </button>
                     </div>
 
@@ -665,7 +679,7 @@ _Gerado automaticamente via Vitrine Comercial Premium de ${singer.name}._`;
                     {manualOverride && (
                       <div className="p-3 bg-zinc-950 rounded-lg space-y-2 border border-zinc-900 animate-fadeIn">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-zinc-400">Distância Ajustada Manualmente:</span>
+                          <span className="text-xs font-semibold text-zinc-400">Ajustar Distância Manual:</span>
                           <div className="flex items-center gap-1 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
                             <input
                               type="number"
@@ -690,7 +704,7 @@ _Gerado automaticamente via Vitrine Comercial Premium de ${singer.name}._`;
                           className="w-full accent-indigo-500 bg-zinc-900 rounded-lg appearance-none h-1 cursor-pointer"
                         />
                         <span className="block text-[9px] text-zinc-500 leading-normal">
-                          * Use o ajuste apenas se a cidade correta não foi mapeada via consulta de satélite ou se possui uma distância preferencial acordada.
+                          * Ajuste a distância caso queira simular uma quilometragem específica.
                         </span>
                       </div>
                     )}
