@@ -10,6 +10,15 @@ interface EventsProps {
 export default function Events({ singer }: EventsProps) {
   const theme = getThemeClasses(singer.themeColor);
 
+  const getTodayString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const todayStr = getTodayString();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'esgotado':
@@ -85,6 +94,7 @@ export default function Events({ singer }: EventsProps) {
               })
               .map((evt, idx) => {
               const formatted = formatDate(evt.date);
+              const isPast = evt.date < todayStr;
               return (
                 <motion.div
                   key={evt.id || idx}
@@ -92,23 +102,29 @@ export default function Events({ singer }: EventsProps) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: idx * 0.05 }}
-                  className="flex flex-col sm:flex-row items-center justify-between p-5 rounded-2xl bg-zinc-900/40 border border-zinc-800 transition hover:shadow-md hover:bg-zinc-900/70"
+                  className={`flex flex-col sm:flex-row items-center justify-between p-5 rounded-2xl border transition hover:shadow-md ${
+                    isPast 
+                      ? 'bg-zinc-950/10 border-zinc-900/50 opacity-50' 
+                      : 'bg-zinc-900/40 border-zinc-800 hover:bg-zinc-900/70'
+                  }`}
                 >
                   {/* Left Side: Date Block & Info */}
                   <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left w-full sm:w-auto">
                     {/* Calendar visual Block */}
                     <div className="w-16 h-16 rounded-xl flex flex-col items-center justify-center font-bold text-center border shadow-md bg-zinc-950 border-zinc-800">
-                      <span className={`text-[10px] uppercase font-mono tracking-wider ${theme.primaryText}`}>
+                      <span className={`text-[10px] uppercase font-mono tracking-wider ${isPast ? 'text-zinc-600 line-through' : theme.primaryText}`}>
                         {formatted.month}
                       </span>
-                      <span className="text-2xl text-white leading-none">
+                      <span className={`text-2xl leading-none ${isPast ? 'text-zinc-500 line-through' : 'text-white'}`}>
                         {formatted.day}
                       </span>
                     </div>
 
                     {/* Venue and City Details */}
                     <div>
-                      <h4 className="font-bold text-white text-lg leading-snug">{evt.title}</h4>
+                      <h4 className={`font-bold text-lg leading-snug ${isPast ? 'text-zinc-500 line-through' : 'text-white'}`}>
+                        {evt.title}
+                      </h4>
                       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-zinc-400 mt-1.5 font-light">
                         <span className="flex items-center gap-1.5">
                           <MapPin size={13} className="text-zinc-500" />
@@ -124,11 +140,15 @@ export default function Events({ singer }: EventsProps) {
 
                   {/* Right Side: Status Tag, Optional Ticket Links */}
                   <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-4 w-full sm:w-auto mt-4 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-zinc-800">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${getStatusColor(evt.status)}`}>
-                      {getStatusLabel(evt.status)}
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                      isPast 
+                        ? 'bg-zinc-900/30 text-zinc-500 border-zinc-850' 
+                        : getStatusColor(evt.status)
+                    }`}>
+                      {isPast ? 'Show Realizado' : getStatusLabel(evt.status)}
                     </span>
                     
-                    {evt.link && evt.status !== 'esgotado' && (
+                    {evt.link && evt.status !== 'esgotado' && !isPast && (
                       <a
                         href={evt.link}
                         target="_blank"
