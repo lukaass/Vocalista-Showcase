@@ -44,7 +44,14 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
   // Subsections fields state
   const [plans, setPlans] = useState<Plan[]>(profile?.plans || []);
   const [gallery, setGallery] = useState<string[]>(profile?.gallery || []);
-  const [events, setEvents] = useState<ShowEvent[]>(profile?.events || []);
+  const [events, setEvents] = useState<ShowEvent[]>(() => {
+    const list = profile?.events || [];
+    return [...list].sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.time.localeCompare(b.time);
+    });
+  });
   const [testimonials, setTestimonials] = useState<Testimonial[]>(profile?.testimonials || []);
   const [faqs, setFaqs] = useState<FAQItem[]>(profile?.faqs || []);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -304,7 +311,14 @@ export default function SingerDashboard({ username, onLogout, onPreviewShowcase 
       city: newEvtCity.trim(),
       status: newEvtStatus
     };
-    setEvents(prev => [...prev, newEvt]);
+    setEvents(prev => {
+      const sorted = [...prev, newEvt];
+      return sorted.sort((a, b) => {
+        const dateCompare = a.date.localeCompare(b.date);
+        if (dateCompare !== 0) return dateCompare;
+        return a.time.localeCompare(b.time);
+      });
+    });
     // Reset temp fields
     setNewEvtTitle('');
     setNewEvtDate('');

@@ -77,7 +77,13 @@ export default function Events({ singer }: EventsProps) {
         {/* Agenda Lists */}
         {singer.events && singer.events.length > 0 ? (
           <div className="space-y-4">
-            {singer.events.map((evt, idx) => {
+            {[...singer.events]
+              .sort((a, b) => {
+                const dateCompare = a.date.localeCompare(b.date);
+                if (dateCompare !== 0) return dateCompare;
+                return a.time.localeCompare(b.time);
+              })
+              .map((evt, idx) => {
               const formatted = formatDate(evt.date);
               return (
                 <motion.div
