@@ -11,43 +11,33 @@ interface InstagramThumbnailProps {
 }
 
 function InstagramThumbnail({ mediaId, singerName }: InstagramThumbnailProps) {
-  const [imgSrc, setImgSrc] = useState(`https://www.instagram.com/p/${mediaId}/media/?size=m`);
-  const [hasError, setHasError] = useState(false);
-
-  const handleImageError = () => {
-    if (!hasError) {
-      setHasError(true);
-      // Stable selection of premium music-related placeholder photos
-      const beautifulMusicImages = [
-        'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800', // Concert stage hands up
-        'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=80&w=800', // Singer with microphone
-        'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&q=80&w=800', // Concert crowd and lights
-        'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=800', // Vintage microphone
-        'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800', // DJ controller/music
-        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=800', // Party concert lights
-        'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=800'  // Concert performance
-      ];
-      // Create a stable sum hash based on media ID characters to pick one of the images
-      let sum = 0;
-      for (let i = 0; i < Math.min(mediaId.length, 5); i++) {
-        sum += mediaId.charCodeAt(i);
-      }
-      setImgSrc(beautifulMusicImages[sum % beautifulMusicImages.length]);
-    }
-  };
+  const [isLoaded, setIsLoaded] = useState(false);
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-      <img
-        src={imgSrc}
-        onError={handleImageError}
-        alt={`Instagram Post - ${singerName}`}
-        className="w-full h-full object-cover filter brightness-75 group-hover:brightness-90 group-hover:scale-110 transition duration-500 ease-out"
-        referrerPolicy="no-referrer"
+    <div className="absolute inset-0 bg-zinc-950 flex items-center justify-center overflow-hidden">
+      {/* Real Instagram Embed Iframe */}
+      <iframe
+        src={`https://www.instagram.com/p/${mediaId}/embed`}
+        onLoad={() => setIsLoaded(true)}
+        className={`w-[328px] h-[440px] border-0 pointer-events-none transition-all duration-500 max-w-none transform -translate-y-6 scale-[1.05] ${
+          isLoaded ? 'opacity-90 group-hover:opacity-100 group-hover:scale-[1.08]' : 'opacity-0'
+        }`}
+        scrolling="no"
+        allowTransparency={true}
       />
-      
+
+      {/* Loading state indicator */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/80">
+          <div className="w-6 h-6 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+
+      {/* Transparent overlay that intercepts all hover & click events on the iframe */}
+      <div className="absolute inset-0 bg-transparent cursor-pointer" />
+
       {/* Small top-right Instagram badge */}
-      <div className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md border border-white/10 flex items-center gap-1.5 text-[9px] font-mono tracking-wider font-bold text-white uppercase shadow-sm">
+      <div className="absolute top-3 right-3 z-10 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md border border-white/10 flex items-center gap-1.5 text-[9px] font-mono tracking-wider font-bold text-white uppercase shadow-sm">
         <svg className="w-3.5 h-3.5 text-pink-500" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
         </svg>
@@ -55,7 +45,7 @@ function InstagramThumbnail({ mediaId, singerName }: InstagramThumbnailProps) {
       </div>
 
       {/* Play/View icon centered */}
-      <div className="absolute w-12 h-12 rounded-full bg-black/55 border border-white/20 flex items-center justify-center text-white backdrop-blur-sm shadow-md group-hover:scale-105 group-hover:bg-pink-600/70 group-hover:border-pink-500/40 transition duration-300">
+      <div className="absolute w-12 h-12 rounded-full bg-black/60 border border-white/25 flex items-center justify-center text-white backdrop-blur-sm shadow-md group-hover:scale-110 group-hover:bg-pink-600/70 group-hover:border-pink-500/40 transition duration-300 z-10">
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
