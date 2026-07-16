@@ -10,6 +10,95 @@ interface PlanComparisonProps {
 export default function PlanComparison({ singer }: PlanComparisonProps) {
   const theme = getThemeClasses(singer.themeColor);
 
+  const plan1 = singer.plans[0];
+  const plan2 = singer.plans[1];
+  const plan3 = singer.plans[2];
+
+  // Helpers to extract plan technical features dynamically from singer's plans
+  const extractDuration = (plan: any, fallback: string): string => {
+    if (!plan) return fallback;
+    const features = plan.features || [];
+    
+    // Look for lines containing "Duração" / "duracao"
+    for (const feat of features) {
+      const fLower = feat.toLowerCase();
+      if (fLower.includes('duração') || fLower.includes('duracao')) {
+        const cleaned = feat.replace(/^(duracao|duração):\s*/i, '').trim();
+        if (cleaned) {
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+      }
+    }
+    
+    // Look for other lines containing "horas" or "hora" or "h " or "h de"
+    for (const feat of features) {
+      const fLower = feat.toLowerCase();
+      if (fLower.includes('horas') || fLower.includes('hora') || fLower.includes('h de') || fLower.includes('minutos') || fLower.includes('min ')) {
+        const cleaned = feat.replace(/^(duracao|duração):\s*/i, '').trim();
+        if (cleaned) {
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+      }
+    }
+    
+    // Try to parse description
+    if (plan.description) {
+      const durationRegex = /(\d+\s*horas?|\d+\s*h\b|\d+\s*minutos?|\d+\s*min)/gi;
+      const matches = plan.description.match(durationRegex);
+      if (matches && matches.length > 0) {
+        const matched = matches[0].trim();
+        return matched.charAt(0).toUpperCase() + matched.slice(1);
+      }
+    }
+    
+    return fallback;
+  };
+
+  const extractSonorizacao = (plan: any, fallback: string): string => {
+    if (!plan) return fallback;
+    const features = plan.features || [];
+    for (const feat of features) {
+      const fLower = feat.toLowerCase();
+      if (fLower.includes('sonorização') || fLower.includes('sonorizacao') || fLower.includes('som próprio') || fLower.includes('som inclus') || fLower.includes('caixas de som') || fLower.includes('sonorização própria')) {
+        const cleaned = feat.replace(/^(sonorização|sonorizacao|rider técnico|som):\s*/i, '').trim();
+        if (cleaned) {
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+      }
+    }
+    return fallback;
+  };
+
+  const extractRepertorio = (plan: any, fallback: string): string => {
+    if (!plan) return fallback;
+    const features = plan.features || [];
+    for (const feat of features) {
+      const fLower = feat.toLowerCase();
+      if (fLower.includes('pedido') || fLower.includes('música') || fLower.includes('musica') || fLower.includes('repertório') || fLower.includes('repertorio')) {
+        const cleaned = feat.replace(/^(repertório|repertorio):\s*/i, '').trim();
+        if (cleaned) {
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+      }
+    }
+    return fallback;
+  };
+
+  const extractIluminacao = (plan: any, fallback: any): any => {
+    if (!plan) return fallback;
+    const features = plan.features || [];
+    for (const feat of features) {
+      const fLower = feat.toLowerCase();
+      if (fLower.includes('iluminação') || fLower.includes('iluminacao') || fLower.includes('luz') || fLower.includes('refletores') || fLower.includes('led') || fLower.includes('efeitos')) {
+        const cleaned = feat.replace(/^(iluminação|iluminacao|luzes|luz):\s*/i, '').trim();
+        if (cleaned) {
+          return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+      }
+    }
+    return fallback;
+  };
+
   // Common criteria compared across all setups
   const comparisonItems = [
     {
@@ -22,9 +111,9 @@ export default function PlanComparison({ singer }: PlanComparisonProps) {
     {
       title: 'Estrutura de Sonorização',
       desc: 'Adequação do sistema de áudio ao volume e quantidade de convidados.',
-      p1: 'Compacto (Até 100 pes.)',
-      p2: 'Médio Porte (Até 250 pes.)',
-      p3: 'Grande Porte (Até 500+ pes.)',
+      p1: extractSonorizacao(plan1, 'Compacto (Até 100 pes.)'),
+      p2: extractSonorizacao(plan2, 'Médio Porte (Até 250 pes.)'),
+      p3: extractSonorizacao(plan3, 'Grande Porte (Até 500+ pes.)'),
     },
     {
       title: 'Rapport e Interação',
@@ -36,23 +125,23 @@ export default function PlanComparison({ singer }: PlanComparisonProps) {
     {
       title: 'Duração Máxima',
       desc: 'Tempo total contratado em minutos em cima do palco.',
-      p1: '2 Horas (120 min)',
-      p2: '3 Horas (180 min)',
-      p3: '4 Horas (240 min)',
+      p1: extractDuration(plan1, '2 Horas (120 min)'),
+      p2: extractDuration(plan2, '3 Horas (180 min)'),
+      p3: extractDuration(plan3, '4 Horas (240 min)'),
     },
     {
       title: 'Repertório Adicional Exclusivo',
       desc: 'Músicas ensaiadas sob encomenda especial de fora do repertório padrão.',
-      p1: 'Até 3 Músicas',
-      p2: 'Até 5 Músicas',
-      p3: 'Até 8 Músicas',
+      p1: extractRepertorio(plan1, 'Até 3 Músicas'),
+      p2: extractRepertorio(plan2, 'Até 5 Músicas'),
+      p3: extractRepertorio(plan3, 'Até 8 Músicas'),
     },
     {
       title: 'Iluminação de Pista / Cênica',
       desc: 'Monitores de luz de LED e refletores inteligentes voltados para a pista.',
-      p1: <Minus size={16} className="text-zinc-600 mx-auto" />,
-      p2: 'Básica (Refletores LED)',
-      p3: 'Roborizada Completa + Efeitos',
+      p1: extractIluminacao(plan1, <Minus size={16} className="text-zinc-600 mx-auto" />),
+      p2: extractIluminacao(plan2, 'Básica (Refletores LED)'),
+      p3: extractIluminacao(plan3, 'Roborizada Completa + Efeitos'),
     },
     {
       title: 'Contrato de Show',
