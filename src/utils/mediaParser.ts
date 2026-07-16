@@ -6,6 +6,7 @@ export interface ParsedMedia {
   type: MediaType;
   url: string;
   embedUrl: string;
+  id?: string;
 }
 
 export function parseMediaUrl(url: string): ParsedMedia {
@@ -18,7 +19,8 @@ export function parseMediaUrl(url: string): ParsedMedia {
     return {
       type: 'youtube',
       url,
-      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}`
+      embedUrl: `https://www.youtube.com/embed/${ytMatch[1]}`,
+      id: ytMatch[1]
     };
   }
 
@@ -30,7 +32,8 @@ export function parseMediaUrl(url: string): ParsedMedia {
     return {
       type: 'instagram',
       url,
-      embedUrl: `https://www.instagram.com/p/${igMatch[1]}/embed`
+      embedUrl: `https://www.instagram.com/p/${igMatch[1]}/embed`,
+      id: igMatch[1]
     };
   }
 
